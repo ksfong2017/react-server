@@ -32,9 +32,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "server": "cd server && nodemon server.js",
+    "server": "nodemon server.js",
     "api": "nodemon api.js",
-    "dev": "concurrently --kill-others-on-fail \"npm run client\" \"npm run server\" "
+    "dev": "concurrently --kill-others-on-fail \"npm run server\" "
   },
   "eslintConfig": {
     "extends": [

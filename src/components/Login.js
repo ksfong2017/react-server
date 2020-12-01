@@ -1,26 +1,26 @@
-import React from "react";
-import axios from "axios";
-import decode from "jwt-decode";
+import React from 'react';
+import axios from 'axios';
+import decode from 'jwt-decode';
 
 class Login extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.state = {
-      username: "",
-      password: "",
-      loginStatus: false,
-    };
-  }
+	constructor(props) {
+		super(props);
+		this.handleSubmit = this.handleSubmit.bind(this);
+		this.state = {
+			username: '',
+			password: '',
+			loginStatus: false,
+		};
+	}
 
-  handleChange = (e) => {
-    this.setState({ [e.target.name]: e.target.value, error: "" });
-  };
+	handleChange = (e) => {
+		this.setState({ [e.target.name]: e.target.value, error: '' });
+	};
 
-  handleSubmit(event) {
-    event.preventDefault();
-    
-    /*
+	handleSubmit(event) {
+		event.preventDefault();
+
+		/*
     const requestOptions = {
       method: "POST",
       body: "username=alpha&password=alpha"
@@ -34,7 +34,7 @@ class Login extends React.Component {
 
       */
 
-    /*
+		/*
     var formdata = new FormData();
 
     var requestOptions = {
@@ -49,7 +49,7 @@ class Login extends React.Component {
       .catch((error) => console.log("error", error));
 
       */
-    /*
+		/*
     var formdata = new FormData();
 
     console.log(this.state.username);
@@ -101,50 +101,44 @@ class Login extends React.Component {
           )
       );
     */
-    
-    let self = this;
-    axios
-      .post("/api/login", {
-        username: this.state.username,
-        password: this.state.password,
-      })
-      .then(function (response) {
-        localStorage.setItem("token", "Bearer " + response);
-        self.setState({ loginStatus: true });
-        console.log(response);
-      })
-      .catch(function (error) {
-        // Handle Error 403
-        console.log(error);
-      });
-      
-  }
 
-  render() {
-    return (
-      <div>
-        <h2>Login</h2>
-        <div>
-          <form onSubmit={this.handleSubmit}>
-            <input
-              type="text"
-              name="username"
-              placehoder="username"
-              onChange={this.handleChange}
-            ></input>
-            <input
-              type="password"
-              name="password"
-              placehoder="password"
-              onChange={this.handleChange}
-            ></input>
-            <button type="submit">Submit</button>
-          </form>
-          <div id="error" style={{ color: "red" }}></div>
-        </div>
-      </div>
-    );
-  }
+		axios
+			.post('/api/login', {
+				username: this.state.username,
+				password: this.state.password,
+			})
+			.then((response) => response)
+			.catch((error) => error.response)
+			.then((response) => {
+				if (response.status == '200') {
+					localStorage.setItem('token', 'Bearer ' + response.data);
+					this.setState({ loginStatus: true });
+				} else {
+					this.setState({ error: response.data });
+				}
+			});
+	}
+
+	render() {
+		return (
+			<div>
+				<h2>Login</h2>
+				<div>
+					<form onSubmit={this.handleSubmit}>
+						<input type="text" name="username" placehoder="username" onChange={this.handleChange}></input>
+						<input
+							type="password"
+							name="password"
+							placehoder="password"
+							onChange={this.handleChange}
+						></input>
+						<button type="submit">Submit</button>
+					</form>
+					<div id="error" style={{ color: 'red' }}>{this.state.error}</div>
+				</div>
+			</div>
+		);
+	}
 }
 
 export default Login;
