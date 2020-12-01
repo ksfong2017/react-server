@@ -4,29 +4,21 @@ const request = require("request");
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 5000;
+const path = require('path');
 
-app.get("/", function (req, res) {
-  res.send("Welcome to our API");
-});
+app.use(express.static(path.join(__dirname, '/build')));
 
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.post("/login", function (req, res) {
+app.post("/api/login", function (req, res) {
 
   console.log(req.body);
 
 
-  res.status(400).send(
+  res.status(200).send(
     JSON.stringify({
       data: "Hello Beeceptor",
     })
@@ -53,6 +45,10 @@ app.post("/api/world", (req, res) => {
   res.send(
     `I received your POST request. This is what you sent me: ${req.body.post}`
   );
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname+'/build/index.html'));
 });
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
