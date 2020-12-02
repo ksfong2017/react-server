@@ -111,8 +111,15 @@ class Login extends React.Component {
 			.catch((error) => error.response)
 			.then((response) => {
 				if (response.status == '200') {
-					localStorage.setItem('token', 'Bearer ' + response.data);
-					this.setState({ loginStatus: true });
+					var token = response.data;
+					var decodedToken = decode(token);
+          var diff = parseInt(decodedToken.exp) - parseInt(decodedToken.iat);
+          var expiry = new Date();
+          expiry.setSeconds(expiry.getSeconds() + diff/10);
+          
+          localStorage.setItem('token', 'Bearer ' + token);
+          localStorage.setItem('expiry', expiry);
+					localStorage.setItem('loginstatus', true);
 				} else {
 					this.setState({ error: response.data });
 				}
@@ -134,7 +141,9 @@ class Login extends React.Component {
 						></input>
 						<button type="submit">Submit</button>
 					</form>
-					<div id="error" style={{ color: 'red' }}>{this.state.error}</div>
+					<div id="error" style={{ color: 'red' }}>
+						{this.state.error}
+					</div>
 				</div>
 			</div>
 		);
