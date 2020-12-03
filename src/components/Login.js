@@ -13,10 +13,23 @@ class Login extends React.Component {
 		};
 	}
 
+	componentDidMount() {
+		this.setState({
+			username: localStorage.getItem('username') || '',
+			password: localStorage.getItem('password') || ''
+		});
+	}
+
 	handleChange = (e) => {
 		this.setState({ [e.target.name]: e.target.value, error: '' });
 	};
-
+	handleCheckBoxChange = (e) => {
+		if (e.target.checked) {
+			this.setState({ [e.target.name]: true });
+		} else {
+			this.setState({ [e.target.name]: false });
+		}
+	};
 	handleSubmit(event) {
 		event.preventDefault();
 
@@ -113,13 +126,21 @@ class Login extends React.Component {
 				if (response.status == '200') {
 					var token = response.data;
 					var decodedToken = decode(token);
-          var diff = parseInt(decodedToken.exp) - parseInt(decodedToken.iat);
-          var expiry = new Date();
-          expiry.setSeconds(expiry.getSeconds() + diff/10);
-          
-          localStorage.setItem('token', 'Bearer ' + token);
-          localStorage.setItem('expiry', expiry);
+					var diff = parseInt(decodedToken.exp) - parseInt(decodedToken.iat);
+					var expiry = new Date();
+					expiry.setSeconds(expiry.getSeconds() + diff / 10);
+
+					//console.log("Remember Me? " + this.state.rememberme);
+					if (this.state.rememberme) {
+						localStorage.setItem('username', this.state.username);
+						localStorage.setItem('password', this.state.password);
+					}
+
+					localStorage.setItem('token', 'Bearer ' + token);
+					localStorage.setItem('expiry', expiry);
 					localStorage.setItem('loginstatus', true);
+
+					this.props.history.push('/onboarding');
 				} else {
 					this.setState({ error: response.data });
 				}
@@ -139,6 +160,10 @@ class Login extends React.Component {
 							placehoder="password"
 							onChange={this.handleChange}
 						></input>
+						<label>
+							<input type="checkbox" name="rememberme" onChange={this.handleCheckBoxChange} /> Remember
+							Me?
+						</label>
 						<button type="submit">Submit</button>
 					</form>
 					<div id="error" style={{ color: 'red' }}>

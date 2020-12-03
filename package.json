@@ -35,7 +35,7 @@
     "eject": "react-scripts eject",
     "server": "nodemon server.js",
     "api": "nodemon api.js",
-    "dev": "concurrently --kill-others-on-fail \"npm run server\" "
+    "dev": "concurrently --kill-others-on-fail \"NODE_ENV=dev npm run server\" \"npm run react\""
   },
   "eslintConfig": {
     "extends": [
@@ -55,5 +55,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:4001"
+  "proxy": "http://localhost:5000"
 }

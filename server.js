@@ -10,20 +10,13 @@ const upload = multer();
 const port = process.env.PORT || 5000;
 const path = require('path');
 
-app.use(express.static(path.join(__dirname, '/build')));
+if (process.env.NODE_ENV != 'dev') {
+	app.use(express.static(path.join(__dirname, '/build')));
+}
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-function login(username, password) {
-	return axios
-		.post('http://localhost:3001/login', {
-			username: username,
-			password: password,
-		})
-		.then((response) => response)
-		.catch((error) => error.response);
-}
 
 app.post('/api/login', function (req, res) {
 	console.log(req.body);
@@ -94,16 +87,12 @@ app.post('/api/validateForm', upload.single('image'), function (req, res) {
 		formData.append('image', file.buffer, file.originalname);
 		formData.append('productType', req.body['productType']);
 		axios
-			.post(
-				'http://localhost:3001/validateForm',
-				formData,
-				{
-					headers: {
-						Authorization: req.headers['authorization'],
-						'Content-Type': `multipart/form-data; boundary=${formData._boundary}`
-					},
-				}
-			)
+			.post('http://localhost:3001/validateForm', formData, {
+				headers: {
+					Authorization: req.headers['authorization'],
+					'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
+				},
+			})
 			.then((response) => response)
 			.catch((error) => error.response)
 			.then((response) => {
@@ -122,9 +111,10 @@ app.post('/api/world', (req, res) => {
 	console.log(req.body);
 	res.send(`I received your POST request. This is what you sent me: ${req.body.post}`);
 });
-
-app.get('*', (req, res) => {
-	res.sendFile(path.join(__dirname + '/build/index.html'));
-});
+if (process.env.NODE_ENV != 'dev') {
+	app.get('*', (req, res) => {
+		res.sendFile(path.join(__dirname + '/build/index.html'));
+	});
+}
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
