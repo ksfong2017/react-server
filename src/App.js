@@ -95,9 +95,10 @@ class App extends React.Component {
           var decodedToken = decode(token);
           console.log(decodedToken);
 					var diff = parseInt(decodedToken.exp) - parseInt(decodedToken.iat);
-					var expiry = new Date();
+          var expiry = new Date();
+          console.log(diff);
 					expiry.setSeconds(expiry.getSeconds() + diff / 10);
-
+          console.log(expiry);
 					localStorage.setItem('token', 'Bearer ' + token);
 					localStorage.setItem('expiry', expiry);
 					this.extendSessionPopup();
