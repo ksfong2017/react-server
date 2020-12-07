@@ -1,0 +1,26 @@
+.navbar{
+    -webkit-box-shadow: 0 2px 1px rgba(0,0,0,0.1);
+    -moz-box-shadow: 0 2px 1px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 1px rgba(0,0,0,0.1);
+    
+}
+@media only screen and (min-width:992px){
+    .nav-link{
+        padding-top: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
+    }
+    .navbar{
+        padding-right: 2rem !important;
+    padding-left: 2rem !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    }
+}
+
+.nav-login{
+    background-color: #f33;
+    color: white !important;
+}
+.navbar-light .navbar-nav .nav-link {
+    color: black !important;
+} 

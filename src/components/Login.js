@@ -1,7 +1,9 @@
 import React from 'react';
 import axios from 'axios';
 import decode from 'jwt-decode';
-import { withRouter } from "react-router";
+import { withRouter } from 'react-router';
+import './css/Login.css';
+import { Form, Button } from 'react-bootstrap';
 class Login extends React.Component {
 	constructor(props) {
 		super(props);
@@ -10,13 +12,22 @@ class Login extends React.Component {
 			username: '',
 			password: '',
 			loginStatus: false,
+			rememberme: '',
 		};
-	}
 
+		if (localStorage.getItem('expiry')) {
+			let expiry = new Date(localStorage.getItem('expiry'));
+			let current = new Date();
+			if(expiry > current){
+				this.props.history.replace('/');
+			}
+		}
+	}
 	componentDidMount() {
 		this.setState({
 			username: localStorage.getItem('username') || '',
-			password: localStorage.getItem('password') || ''
+			password: localStorage.getItem('password') || '',
+			rememberme: localStorage.getItem('rememberme') === 'true' ? true : false,
 		});
 	}
 
@@ -29,6 +40,7 @@ class Login extends React.Component {
 		} else {
 			this.setState({ [e.target.name]: false });
 		}
+		console.log(this.state.rememberme);
 	};
 	handleSubmit(event) {
 		event.preventDefault();
@@ -123,7 +135,12 @@ class Login extends React.Component {
 			.then((response) => response)
 			.catch((error) => error.response)
 			.then((response) => {
-				if (response.status == '200') {
+
+				console.log(response.status);
+				
+				if (response.status === '200' || response.status === 200) {
+
+
 					var token = response.data;
 					var decodedToken = decode(token);
 					var diff = parseInt(decodedToken.exp) - parseInt(decodedToken.iat);
@@ -134,39 +151,65 @@ class Login extends React.Component {
 					if (this.state.rememberme) {
 						localStorage.setItem('username', this.state.username);
 						localStorage.setItem('password', this.state.password);
+						localStorage.setItem('rememberme', this.state.rememberme);
 					}
 
 					localStorage.setItem('token', 'Bearer ' + token);
 					localStorage.setItem('expiry', expiry);
+					localStorage.setItem('loginStatus', true);
+					this.props.updateState({ loginStatus: true});
 					this.props.extendSessionPopup();
 					this.props.history.replace('/onboarding');
 				} else {
 					this.setState({ error: response.data });
 				}
+				
 			});
 	}
 
 	render() {
 		return (
-			<div>
-				<h2>Login</h2>
-				<div>
-					<form onSubmit={this.handleSubmit}>
-						<input type="text" name="username" placehoder="username" onChange={this.handleChange}></input>
-						<input
-							type="password"
-							name="password"
-							placehoder="password"
-							onChange={this.handleChange}
-						></input>
-						<label>
-							<input type="checkbox" name="rememberme" onChange={this.handleCheckBoxChange} /> Remember
-							Me?
-						</label>
-						<button type="submit">Submit</button>
-					</form>
-					<div id="error" style={{ color: 'red' }}>
-						{this.state.error}
+			<div class="login">
+				<div class="login-box">
+					<h2 class="text-center">Login</h2>
+					<div>
+						<Form onSubmit={this.handleSubmit}>
+							<Form.Group controlId="formBasicUsername">
+								<Form.Label>Username</Form.Label>
+								<Form.Control
+									type="text"
+									name="username"
+									placehoder="Enter Username"
+									onChange={this.handleChange}
+									value={this.state.username}
+								/>
+							</Form.Group>
+
+							<Form.Group controlId="formBasicPassword">
+								<Form.Label>Password</Form.Label>
+								<Form.Control
+									type="password"
+									name="password"
+									placehoder="Password"
+									onChange={this.handleChange}
+								/>
+							</Form.Group>
+							<Form.Group controlId="formBasicCheckbox">
+								<Form.Check
+									type="checkbox"
+									name="rememberme"
+									label="Remember Me"
+									onChange={this.handleCheckBoxChange}
+									checked={this.state.rememberme}
+								/>
+							</Form.Group>
+							<Button variant="primary" type="submit">
+								Login
+							</Button>
+							<Form.Text id="error" style={{ color: 'red' }}>
+								{this.state.error}
+							</Form.Text>
+						</Form>
 					</div>
 				</div>
 			</div>

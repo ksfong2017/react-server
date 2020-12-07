@@ -1,0 +1,21 @@
+.login {
+    background: url("../../images/singapore.jpg");
+    flex: 1 1 auto;
+    background-size: cover;
+}
+
+.login-box {
+    max-width: 500px;
+    background-color:rgba( 255, 255, 255, 0.9);
+    top: 40%;
+    position: absolute;
+    right: 0;
+    left: 50%;
+    transform: translate(-50%);
+    -webkit-transform: translate(-50%);
+    -moz-transform: translate(-50%);
+    -o-transform: translate(-50%);
+    -ms-transform: translate(-50%);
+    border-radius: 10px;
+    padding: 50px;
+}
