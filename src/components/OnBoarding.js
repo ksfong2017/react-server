@@ -1,7 +1,13 @@
 import React from 'react';
 import axios from 'axios';
-
+import { withRouter } from 'react-router';
 class OnBoarding extends React.Component {
+	appendLeadingZeroes(n) {
+		if (n <= 9) {
+			return '0' + n;
+		}
+		return n;
+	}
 	constructor(props) {
 		super(props);
 		this.handleSubmit = this.handleSubmit.bind(this);
@@ -23,7 +29,23 @@ class OnBoarding extends React.Component {
 				{ id: '555', value: 'Credit Cards' },
 			],
 		};
+
+		let d = new Date();
+		let d_format =
+			this.appendLeadingZeroes(d.getDate()) +
+			'/' +
+			this.appendLeadingZeroes(d.getMonth() + 1) +
+			'/' +
+			d.getFullYear() +
+			' ' +
+			this.appendLeadingZeroes(d.getHours()) +
+			':' +
+			this.appendLeadingZeroes(d.getMinutes()) +
+			':' +
+			this.appendLeadingZeroes(d.getSeconds());
+		console.log(d_format);
 	}
+
 	handleFileChange = (e) => {
 		let file = e.target.files[0];
 		this.setState({ [e.target.name]: file });
@@ -66,22 +88,23 @@ class OnBoarding extends React.Component {
 			}
 		}
 		this.setState({ productType: productType });
+		console.log(productType);
 	};
 	handleSubmit(event) {
 		event.preventDefault();
 
 		var formData = new FormData();
-    formData.append('customerName', this.state.customerName);
-    formData.append('customerAge', this.state.customerAge);
-    formData.append('serviceOfficerName', this.state.serviceOfficerName);
-    formData.append('NRIC', this.state.NRIC);
-    formData.append('registrationTime', this.state.registrationTime);
-    formData.append('branchCode', this.state.branchCode);
-    formData.append('image', this.state.image);
-    formData.append('productType', this.state.productType);
-		
+		formData.append('customerName', this.state.customerName);
+		formData.append('customerAge', this.state.customerAge);
+		formData.append('serviceOfficerName', this.state.serviceOfficerName);
+		formData.append('NRIC', this.state.NRIC);
+		formData.append('registrationTime', this.state.registrationTime);
+		formData.append('branchCode', this.state.branchCode);
+		formData.append('image', this.state.image);
+		formData.append('productType', this.state.productType);
+
 		axios
-			.post('/api/validateForm', formData, {
+			.post('http://expressbackend-env.eba-mmzyvbbv.us-east-1.elasticbeanstalk.com/extendSession', formData, {
 				headers: {
 					Authorization: localStorage.getItem('token'),
 				},
@@ -90,7 +113,9 @@ class OnBoarding extends React.Component {
 			.catch((error) => error.response)
 			.then((response) => {
 				if (response.status == '200') {
-          console.log("Fuyoh!");
+					console.log('Fuyoh!');
+
+
 				} else {
 					this.setState({ error: response.data });
 				}
@@ -144,7 +169,7 @@ class OnBoarding extends React.Component {
 						<br />
 						{this.state.productTypes.map((productType) => {
 							return (
-								<li>
+								<li key={productType.id}>
 									<label>
 										<input
 											type="checkbox"
@@ -167,4 +192,4 @@ class OnBoarding extends React.Component {
 	}
 }
 
-export default OnBoarding;
+export default withRouter(OnBoarding);

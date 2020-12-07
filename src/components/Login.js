@@ -1,7 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import decode from 'jwt-decode';
-
+import { withRouter } from "react-router";
 class Login extends React.Component {
 	constructor(props) {
 		super(props);
@@ -116,7 +116,7 @@ class Login extends React.Component {
     */
 
 		axios
-			.post('/api/login', {
+			.post('http://expressbackend-env.eba-mmzyvbbv.us-east-1.elasticbeanstalk.com/login', {
 				username: this.state.username,
 				password: this.state.password,
 			})
@@ -138,9 +138,8 @@ class Login extends React.Component {
 
 					localStorage.setItem('token', 'Bearer ' + token);
 					localStorage.setItem('expiry', expiry);
-					localStorage.setItem('loginstatus', true);
-
-					this.props.history.push('/onboarding');
+					this.props.extendSessionPopup();
+					this.props.history.replace('/onboarding');
 				} else {
 					this.setState({ error: response.data });
 				}
@@ -175,4 +174,4 @@ class Login extends React.Component {
 	}
 }
 
-export default Login;
+export default withRouter(Login);
