@@ -60,9 +60,9 @@ class Login extends React.Component {
       */
 
 		/*
-    var formdata = new FormData();
+    let formdata = new FormData();
 
-    var requestOptions = {
+    let requestOptions = {
       method: "POST",
       body: JSON.stringify({username :"alpha", password: "alpha"}),
 
@@ -75,14 +75,14 @@ class Login extends React.Component {
 
       */
 		/*
-    var formdata = new FormData();
+    let formdata = new FormData();
 
     console.log(this.state.username);
     console.log(this.state.password);
     formdata.append("username", this.state.username);
     formdata.append("password", this.state.password);
 
-    var requestOptions = {
+    let requestOptions = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -102,9 +102,9 @@ class Login extends React.Component {
       })
       .then((token) => {
         console.log(token);
-        var decodedToken = decode(token);
+        let decodedToken = decode(token);
 
-        //var diff = (d.exp - Date.now() / 1000 ) * 1000 - 5000;
+        //let diff = (d.exp - Date.now() / 1000 ) * 1000 - 5000;
         //console.log(diff);
         //setTimeout(() => console.log('hello! expiring'), diff)
       })
@@ -141,11 +141,11 @@ class Login extends React.Component {
 				if (response.status === '200' || response.status === 200) {
 
 
-					var token = response.data;
-					var decodedToken = decode(token);
-					var diff = parseInt(decodedToken.exp) - parseInt(decodedToken.iat);
-					var expiry = new Date();
-					expiry.setSeconds(expiry.getSeconds() + diff / 10);
+					let token = response.data;
+					let decodedToken = decode(token);
+					let diff = parseInt(decodedToken.exp) - parseInt(decodedToken.iat);
+					let expiry = new Date();
+					expiry.setSeconds(expiry.getSeconds() + diff);
 
 					//console.log("Remember Me? " + this.state.rememberme);
 					if (this.state.rememberme) {

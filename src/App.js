@@ -47,7 +47,7 @@ class App extends React.Component {
 				let diff = expiry - current - 20000; // - 20000 for letting user know 20s before expire
 				console.log(diff);
 
-				var timerPopup = setTimeout(() => {
+				let timerPopup = setTimeout(() => {
 					if (this.state.loginStatus) {
 						this.setState({ show: true });
 						//console.log('showed');
@@ -91,13 +91,13 @@ class App extends React.Component {
 			.then((response) => {
 				if (response.status === '200' || response.status === 200) {
           
-					var token = response.data;
-          var decodedToken = decode(token);
+					let token = response.data;
+          let decodedToken = decode(token);
           console.log(decodedToken);
-					var diff = parseInt(decodedToken.exp) - parseInt(decodedToken.iat);
-          var expiry = new Date();
+					let diff = parseInt(decodedToken.exp) - parseInt(decodedToken.iat);
+          let expiry = new Date();
           console.log(diff);
-					expiry.setSeconds(expiry.getSeconds() + diff / 10);
+					expiry.setSeconds(expiry.getSeconds() + diff);
           console.log(expiry);
 					localStorage.setItem('token', 'Bearer ' + token);
 					localStorage.setItem('expiry', expiry);
