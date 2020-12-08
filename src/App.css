@@ -42,14 +42,25 @@
   display: flex;
   flex-flow: column;
 }
-
-.drafts{
-  display: inline-flex;
-  
+.card{
+  margin-bottom: 20px;
 }
-
-.card-img-top{
-  object-fit: contain;
-  height: 100px;
+.drafts {
+  display: flex;
+  flex-wrap: wrap;
 }
-
+@media only screen and (min-width: 992px) {
+  .card-img-top {
+    object-fit: contain;
+    height: 100px;
+  }
+}
+@media only screen and (min-width: 768px) {
+  .card-img-top {
+    object-fit: contain;
+    height: 200px;
+  }
+}
+.flex-at-end {
+  margin-left: auto;
+}

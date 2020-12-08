@@ -14,7 +14,7 @@ class OnBoardingCard extends React.Component {
 
 	render() {
 		return (
-			<div class="card-holder col-md-3">
+			<div class="card-holder col-12 col-md-6 col-lg-4 ">
 				<Card >
 					<Card.Img variant="top" src={this.props.data.image} />
 					<Card.Body>

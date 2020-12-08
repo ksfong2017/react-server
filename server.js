@@ -51,9 +51,9 @@ app.post('/api/login', function (req, res) {
 	}
 });
 
-app.post('/api/validateForm', upload.single('image'), function (req, res) {
-	
-	//console.log(req.body);
+
+app.post('/api/add', upload.single('image'), function (req, res) {
+	console.log(req.body);
 	if (req.headers['authorization'] == '') {
 		res.status(401).send('Missing credentials');
 	} else if (
@@ -68,7 +68,8 @@ app.post('/api/validateForm', upload.single('image'), function (req, res) {
 		req.file['fieldname'] == undefined ||
 		req.body['productType'] == undefined ||
 		req.body['username'] == undefined ||
-		req.body['base64'] == undefined
+		req.body['base64'] == undefined ||
+		req.body['type'] == undefined
 	) {
 		console.log('here');
 		res.status(400).send('The request parameters are incorrect');
@@ -85,7 +86,7 @@ app.post('/api/validateForm', upload.single('image'), function (req, res) {
 		formData.append('image', file.buffer, file.originalname);
 		formData.append('productType', req.body['productType']);
 		axios
-			.post('http://localhost:3001/validateForm', formData, {
+			.post('http://expressbackend-env.eba-mmzyvbbv.us-east-1.elasticbeanstalk.com/validateForm', formData, {
 				headers: {
 					Authorization: req.headers['authorization'],
 					'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
@@ -95,29 +96,29 @@ app.post('/api/validateForm', upload.single('image'), function (req, res) {
 			.catch((error) => error.response)
 			.then((response) => {
 				if (response.status === '200' || response.status === 200) {
-					db.collection('Customer').doc(req.body['username']).collection('Draft').add({
-						customerName: req.body['customerName'],
-						customerAge: req.body['customerAge'],
-						serviceOfficerName: req.body['serviceOfficerName'],
-						NRIC: req.body['NRIC'],
-						registrationTime: req.body['registrationTime'],
-						branchCode: req.body['branchCode'],
-						image: req.body['base64'],
-						productType: req.body['productType'],
-					}).then( (result) => {
-						try {
-							res.status(response.status).send(response.data);
-						} catch (e) {}
-					}
-						
-					);
+					db.collection('Customer')
+						.doc(req.body['username'])
+						.collection(req.body['type'])
+						.add({
+							customerName: req.body['customerName'],
+							customerAge: req.body['customerAge'],
+							serviceOfficerName: req.body['serviceOfficerName'],
+							NRIC: req.body['NRIC'],
+							registrationTime: req.body['registrationTime'],
+							branchCode: req.body['branchCode'],
+							image: req.body['base64'],
+							productType: req.body['productType'],
+						})
+						.then((result) => {
+							try {
+								res.status(response.status).send(response.data);
+							} catch (e) {}
+						});
 				} else {
 					try {
 						res.status(response.status).send(response.data);
 					} catch (e) {}
 				}
-
-				
 			});
 	}
 });
@@ -141,6 +142,19 @@ app.get('/api/profile', function (req, res) {
 app.get('/api/onboarding/draft', function (req, res) {
 	console.log(req.query);
 	const profileRef = db.collection('Customer').doc(req.query['username']).collection('Draft');
+	profileRef.get().then((draft) => {
+		let output = {};
+		draft.forEach((doc) => {
+			output[doc.id] = doc.data();
+		});
+
+		res.status(200).send(output);
+	});
+});
+
+app.get('/api/onboarding/active', function (req, res) {
+	console.log(req.query);
+	const profileRef = db.collection('Customer').doc(req.query['username']).collection('Active');
 	profileRef.get().then((draft) => {
 		let output = {};
 		draft.forEach((doc) => {

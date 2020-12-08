@@ -52,6 +52,7 @@ class Profile extends React.Component {
 				//console.log(response.status);
 
 				if (response.status === '200' || response.status === 200) {
+                    this.props.updateFullname(this.state.fullname);
                     this.setState({ success: "Successfully updated profile!" });
 				} else {
 					this.setState({ error: response.data });

@@ -28,12 +28,14 @@ class Login extends React.Component {
 		document.title = 'Login';
 
 
-
-		this.setState({
-			username: localStorage.getItem('username') || '',
-			password: localStorage.getItem('password') || '',
-			rememberme: localStorage.getItem('rememberme') === 'true' ? true : false,
-		});
+		if (localStorage.getItem('rememberme') === 'true'){
+			this.setState({
+				username: localStorage.getItem('username') || '',
+				password: localStorage.getItem('password') || '',
+				rememberme: localStorage.getItem('rememberme') === 'true' ? true : false,
+			});
+		}
+		
 	}
 
 	handleChange = (e) => {
@@ -88,7 +90,6 @@ class Login extends React.Component {
 						.get('/api/profile', {
 							params: {
 								username: this.state.username,
-								fullname: '',
 							},
 						})
 						.then((response) => response)
@@ -98,8 +99,11 @@ class Login extends React.Component {
 
 							if (response.status === '200' || response.status === 200) {
 								if (response.data.fullname == ''){
+
 									this.props.history.replace('/profile');
 								} else {
+
+									this.props.updateFullname(response.data.fullname);
 									this.props.history.replace('/onboarding');
 								}
 							}

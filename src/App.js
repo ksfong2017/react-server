@@ -10,7 +10,7 @@ import Logout from './components/Logout';
 import PrivateRoute from './components/PrivateRoute';
 import Profile from './components/Profile';
 import Session from './components/Session';
-
+import axios from './components/Profile';
 class App extends React.Component {
 	constructor(props) {
 		super(props);
@@ -21,6 +21,7 @@ class App extends React.Component {
 			remainingSecs: 20,
 			extend: false,
 			username: '',
+			fullname: '',
 		};
 	}
 
@@ -33,6 +34,8 @@ class App extends React.Component {
 		let current = new Date();
 		if (expiry > current) {
 			this.setState({ loginStatus: localStorage.getItem('loginStatus') == 'true' ? true : false });
+			
+		} else {
 		}
 	}
 	updateLoginStatus(status) {
@@ -47,7 +50,9 @@ class App extends React.Component {
 	handleShow = () => {
 		this.setState({ show: true });
 	};
-
+	updateFullname(name) {
+		this.setState({ fullname: name });
+	}
 	handleClose = () => {
 		this.setState({ show: false });
 	};
@@ -67,6 +72,7 @@ class App extends React.Component {
 							component={(props) => (
 								<Login
 									loginStatus={this.state.loginStatus}
+									updateFullname={this.updateFullname.bind(this)}
 									updateLoginStatus={this.updateLoginStatus.bind(this)}
 									{...props}
 								/>
@@ -74,9 +80,14 @@ class App extends React.Component {
 						></Route>
 						<PrivateRoute
 							path="/onboarding"
-							component={(props) => <OnBoarding {...props} />}
+							component={(props) => <OnBoarding fullname={this.state.fullname} {...props} />}
 						></PrivateRoute>
-						<PrivateRoute path="/profile" component={(props) => <Profile {...props} />}></PrivateRoute>
+						<PrivateRoute
+							path="/profile"
+							component={(props) => (
+								<Profile updateFullname={this.updateFullname.bind(this)} {...props} />
+							)}
+						></PrivateRoute>
 						<Route path="/view/:id" component={View}></Route>
 						<Route
 							path="/logout"

@@ -2,7 +2,9 @@ import React from 'react';
 import axios from 'axios';
 import { withRouter } from 'react-router';
 import OnboardingCard from './OnboardingCard';
-import { Button } from 'react-bootstrap';
+import { Form, Modal, Button } from 'react-bootstrap';
+import Datetime from 'react-datetime';
+import 'react-datetime/css/react-datetime.css';
 class OnBoarding extends React.Component {
 	appendLeadingZeroes(n) {
 		if (n <= 9) {
@@ -16,11 +18,11 @@ class OnBoarding extends React.Component {
 		this.state = {
 			username: '',
 			customerName: '',
-			customerAge: 18,
+			customerAge: '',
 			serviceOfficerName: '',
-			NRIC: 'S1234567A',
+			NRIC: '',
 			registrationTime: '',
-			branchCode: 1,
+			branchCode: '',
 			image: '',
 			productType: [],
 			error: '',
@@ -32,25 +34,31 @@ class OnBoarding extends React.Component {
 				{ id: '969', value: 'Savings' },
 				{ id: '555', value: 'Credit Cards' },
 			],
+			branches: [],
+			show: false,
 			draft: {},
+			active: {},
 		};
-
-		let d = new Date();
-		let d_format =
-			this.appendLeadingZeroes(d.getDate()) +
-			'/' +
-			this.appendLeadingZeroes(d.getMonth() + 1) +
-			'/' +
-			d.getFullYear() +
-			' ' +
-			this.appendLeadingZeroes(d.getHours()) +
-			':' +
-			this.appendLeadingZeroes(d.getMinutes()) +
-			':' +
-			this.appendLeadingZeroes(d.getSeconds());
-		console.log(d_format);
 	}
+	getProfile() {
+		axios
+			.get('/api/profile', {
+				params: {
+					username: this.state.username,
+				},
+			})
+			.then((response) => response)
+			.catch((error) => error.response)
+			.then((response) => {
+				console.log(response.status);
 
+				if (response.status === '200' || response.status === 200) {
+					if (response.data.fullname != '') {
+						this.setState({ serviceOfficerName: response.data.fullname });
+					}
+				}
+			});
+	}
 	getDrafts() {
 		axios
 			.get('/api/onboarding/draft', {
@@ -62,9 +70,28 @@ class OnBoarding extends React.Component {
 			.catch((error) => error.response)
 			.then((response) => {
 				if (response.status == '200') {
-					console.log('Fuyoh!');
+					
 					this.setState({ draft: response.data });
-					console.log(this.state.draft);
+					
+				} else {
+					this.setState({ error: response.data });
+				}
+			});
+	}
+	getActives() {
+		axios
+			.get('/api/onboarding/active', {
+				params: {
+					username: this.state.username,
+				},
+			})
+			.then((response) => response)
+			.catch((error) => error.response)
+			.then((response) => {
+				if (response.status == '200') {
+					
+					this.setState({ active: response.data });
+					
 				} else {
 					this.setState({ error: response.data });
 				}
@@ -76,7 +103,16 @@ class OnBoarding extends React.Component {
 		let uname = localStorage.getItem('username');
 		this.setState({ username: uname }, function () {
 			this.getDrafts();
+			this.getActives();
+			this.getProfile();
 		});
+		let list = [];
+		for (let i = 1; i <= 391; i++){
+			list.push(
+				<option value={i} key={i}>{i}</option>
+			);
+		}
+		this.setState({branches: list});
 	}
 
 	changeFile(file) {
@@ -123,6 +159,7 @@ class OnBoarding extends React.Component {
 
 	handleChange = (e) => {
 		this.setState({ [e.target.name]: e.target.value, error: '' });
+		
 	};
 
 	handleCustomerAgeChange = (e) => {
@@ -172,8 +209,9 @@ class OnBoarding extends React.Component {
 		formData.append('image', this.state.image);
 		formData.append('productType', this.state.productType);
 		formData.append('base64', this.state.base64);
+		formData.append('type', event.target.value);
 		axios
-			.post('/api/validateForm', formData, {
+			.post('/api/add', formData, {
 				headers: {
 					Authorization: localStorage.getItem('token'),
 				},
@@ -184,85 +222,188 @@ class OnBoarding extends React.Component {
 				if (response.status == '200') {
 					console.log('Fuyoh!');
 					this.setState({ error: '' });
+					this.setState({
+						customerName: '',
+						customerAge: '',
+						NRIC: '',
+						registrationTime: '',
+						branchCode: '',
+						image: '',
+						productType: [],
+						error: '',
+						base64: '',
+					});
+					this.setState({show: false});
 					this.getDrafts();
 				} else {
 					this.setState({ error: response.data });
 				}
 			});
 	}
+
+	handleDateTimePicker = (moment, name) => {
+		let d = moment.toDate();
+		let d_format =
+			this.appendLeadingZeroes(d.getDate()) +
+			'/' +
+			this.appendLeadingZeroes(d.getMonth() + 1) +
+			'/' +
+			d.getFullYear() +
+			' ' +
+			this.appendLeadingZeroes(d.getHours()) +
+			':' +
+			this.appendLeadingZeroes(d.getMinutes()) +
+			':' +
+			this.appendLeadingZeroes(d.getSeconds());
+		this.setState({ [name]: d_format });
+	};
+	showAdd = () => {
+		this.setState({ show: true });
+		let d = new Date();
+		this.setState({ moment: d });
+		let d_format =
+			this.appendLeadingZeroes(d.getDate()) +
+			'/' +
+			this.appendLeadingZeroes(d.getMonth() + 1) +
+			'/' +
+			d.getFullYear() +
+			' ' +
+			this.appendLeadingZeroes(d.getHours()) +
+			':' +
+			this.appendLeadingZeroes(d.getMinutes()) +
+			':' +
+			this.appendLeadingZeroes(d.getSeconds());
+		this.setState({ registrationTime: d_format });
+	};
+
+	handleShow = () => {
+		this.setState({ show: true });
+	};
+
+	handleClose = () => {
+		this.setState({ show: false });
+	};
+
 	render() {
 		return (
-			<div class="col-lg-8 mx-auto">
-				<div class="d-flex">
-					<h2>Onboarding</h2>
-					<Button variant="primary">Add</Button>
-				</div>
-				<h3>Drafts</h3>
-				<div class="drafts">
-					{Object.keys(this.state.draft).map((key, i) => {
-						return <OnboardingCard key={key} data={this.state.draft[key]} />;
-					})}
-				</div>
+			<div>
 				<div>
-					<form onSubmit={this.handleSubmit}>
-						<input
-							type="text"
-							name="customerName"
-							placehoder="Customer Name"
-							onChange={this.handleChange}
-						></input>
-						<br />
-						<input
-							type="number"
-							name="customerAge"
-							placehoder="Customer Age"
-							onChange={this.handleCustomerAgeChange}
-						></input>
-						<br />
-						<input
-							type="text"
-							name="serviceOfficerName"
-							placehoder="Service Officer Name"
-							onChange={this.handleChange}
-						></input>
-						<br />
-						<input type="text" name="NRIC" placehoder="NRIC" onChange={this.handleChange}></input>
-						<br />
-						<input
-							type="text"
-							name="registrationTime"
-							placehoder="RegistrationTime"
-							onChange={this.handleChange}
-						></input>
-						<br />
-						<input
-							type="text"
-							name="branchCode"
-							placehoder="Branch Code"
-							onChange={this.handleBranchCodeChange}
-						></input>
-						<br />
-						<img src={this.state.file} />
-						<input type="file" name="image" onChange={this.handleFileChange} />
-						<br />
-						{this.state.productTypes.map((productType) => {
-							return (
-								<li key={productType.id}>
-									<label>
-										<input
+					<Modal show={this.state.show} onHide={this.handleClose}>
+						<Modal.Header closeButton>
+							<Modal.Title>Add</Modal.Title>
+						</Modal.Header>
+						<Modal.Body>
+							<Form.Group controlId="formBasicCustomerName">
+								<Form.Label>Customer Name</Form.Label>
+								<Form.Control
+									type="text"
+									name="customerName"
+									placehoder="Enter Customer name"
+									onChange={this.handleChange}
+									value={this.state.customerName}
+								/>
+							</Form.Group>
+							<Form.Group controlId="formBasicCustomerAge">
+								<Form.Label>Customer Age</Form.Label>
+								<Form.Control
+									type="number"
+									name="customerAge"
+									placehoder="Enter Customer Age"
+									onChange={this.handleChange}
+									value={this.state.customerAge}
+								/>
+							</Form.Group>
+							<Form.Group controlId="formBasicServiceOfficerName">
+								<Form.Label>Service Officer Name</Form.Label>
+								<Form.Control
+									type="text"
+									name="serviceOfficerName"
+									placehoder="Enter Service Officer Name"
+									onChange={this.handleChange}
+									value={this.state.serviceOfficerName}
+								/>
+							</Form.Group>
+
+							<Form.Group controlId="formBasicNRIC">
+								<Form.Label>NRIC</Form.Label>
+								<Form.Control
+									type="text"
+									name="NRIC"
+									placehoder="Enter NRIC"
+									onChange={this.handleChange}
+									value={this.state.NRIC}
+								/>
+							</Form.Group>
+							<Form.Group controlId="formBasicNRIC">
+								<Form.Label>Registration Time</Form.Label>
+								<Datetime
+									onChange={(moment) => this.handleDateTimePicker(moment, 'registrationTime')}
+									value={this.state.moment}
+								/>
+							</Form.Group>
+							<Form.Group controlId="formBasicBranchCode">
+								<Form.Label>Branch Code</Form.Label>
+								<Form.Control as="select" className="mr-sm-2" id="inlineFormCustomSelect" custom name="branchCode" onChange={this.handleChange}>
+									<option value="0">Choose...</option>
+									{this.state.branches}
+								</Form.Control>
+							</Form.Group>
+							<Form.Group>
+								<Form.File
+									id="exampleFormControlFile1"
+									type="file"
+									name="image"
+									onChange={this.handleFileChange}
+									label="Image"
+								/>
+							</Form.Group>
+							{this.state.productTypes.map((productType) => {
+								return (
+									<Form.Group controlId="formBasicCheckbox" key={productType.id}>
+										<Form.Check
 											type="checkbox"
-											value={productType.id}
+											name="productType"
+											label={productType.value}
 											onChange={this.handleProductTypeChange}
 										/>
-										{productType.value}
-									</label>
-								</li>
-							);
+									</Form.Group>
+								);
+							})}
+							<div id="error" style={{ color: 'red' }}>
+								{this.state.error}
+							</div>
+						</Modal.Body>
+						<Modal.Footer>
+							<Button variant="" onClick={this.handleClose}>
+								Cancel
+							</Button>
+							<Button variant="secondary" onClick={this.handleSubmit} value="Draft">
+								Save as Draft
+							</Button>
+							<Button variant="primary" onClick={this.handleSubmit} value="Active">
+								Add
+							</Button>
+						</Modal.Footer>
+					</Modal>
+				</div>
+				<div class="col-lg-8 mx-auto">
+					<div class="d-flex">
+						<h2>Onboarding</h2>
+						<Button className="flex-at-end" variant="primary" onClick={this.showAdd}>
+							Add
+						</Button>
+					</div>
+					<h3>Drafts</h3>
+					<div class="drafts">
+						{Object.keys(this.state.draft).map((key, i) => {
+							return <OnboardingCard key={key} data={this.state.draft[key]} />;
 						})}
-						<button type="submit">Submit</button>
-					</form>
-					<div id="error" style={{ color: 'red' }}>
-						{this.state.error}
+					</div>
+					<h3>Active</h3>
+					<div class="drafts">
+						{Object.keys(this.state.active).map((key, i) => {
+							return <OnboardingCard key={key} data={this.state.active[key]} />;
+						})}
 					</div>
 				</div>
 			</div>
