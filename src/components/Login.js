@@ -15,15 +15,20 @@ class Login extends React.Component {
 			rememberme: '',
 		};
 
+		// If logged in and valid expiry, navigate to home
 		if (localStorage.getItem('expiry')) {
 			let expiry = new Date(localStorage.getItem('expiry'));
 			let current = new Date();
-			if(expiry > current){
+			if (expiry > current) {
 				this.props.history.replace('/');
 			}
 		}
 	}
 	componentDidMount() {
+		document.title = 'Login';
+
+
+
 		this.setState({
 			username: localStorage.getItem('username') || '',
 			password: localStorage.getItem('password') || '',
@@ -45,125 +50,65 @@ class Login extends React.Component {
 	handleSubmit(event) {
 		event.preventDefault();
 
-		/*
-    const requestOptions = {
-      method: "POST",
-      body: "username=alpha&password=alpha"
-    };
-    fetch("http://localhost:3001/login", requestOptions)
-      .then((response) => response.text())
-      .then((data) => {
-        console.log(data);
-      })
-      .catch(console.log);
-
-      */
-
-		/*
-    let formdata = new FormData();
-
-    let requestOptions = {
-      method: "POST",
-      body: JSON.stringify({username :"alpha", password: "alpha"}),
-
-    };
-
-    fetch("http://localhost:3001/login", requestOptions)
-      .then((response) => response.text())
-      .then((result) => console.log(result))
-      .catch((error) => console.log("error", error));
-
-      */
-		/*
-    let formdata = new FormData();
-
-    console.log(this.state.username);
-    console.log(this.state.password);
-    formdata.append("username", this.state.username);
-    formdata.append("password", this.state.password);
-
-    let requestOptions = {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: this.state.username,
-        password: this.state.password,
-      }),
-      redirect: "follow",
-    };
-
-    fetch("http://localhost:3001/login", requestOptions)
-      .then((response) => {
-        if (response.ok) {
-          return response.text();
-        }
-
-        throw response;
-      })
-      .then((token) => {
-        console.log(token);
-        let decodedToken = decode(token);
-
-        //let diff = (d.exp - Date.now() / 1000 ) * 1000 - 5000;
-        //console.log(diff);
-        //setTimeout(() => console.log('hello! expiring'), diff)
-      })
-      .catch((error) =>
-        error
-          .text()
-          .then((errormsg) =>
-            console.log(
-              "[" +
-                error.status +
-                ":" +
-                error.statusText +
-                "] while fetching " +
-                error.url +
-                ", response is [" +
-                errormsg +
-                "]"
-            )
-          )
-      );
-    */
-
 		axios
-			.post('http://expressbackend-env.eba-mmzyvbbv.us-east-1.elasticbeanstalk.com/login', {
+			.post('/api/login', {
 				username: this.state.username,
 				password: this.state.password,
 			})
 			.then((response) => response)
 			.catch((error) => error.response)
 			.then((response) => {
-
 				console.log(response.status);
-				
+
 				if (response.status === '200' || response.status === 200) {
-
-
 					let token = response.data;
 					let decodedToken = decode(token);
 					let diff = parseInt(decodedToken.exp) - parseInt(decodedToken.iat);
 					let expiry = new Date();
 					expiry.setSeconds(expiry.getSeconds() + diff);
 
-					//console.log("Remember Me? " + this.state.rememberme);
+					// If remember me is checked, save username inside browser
 					if (this.state.rememberme) {
 						localStorage.setItem('username', this.state.username);
-						localStorage.setItem('password', this.state.password);
 						localStorage.setItem('rememberme', this.state.rememberme);
 					}
 
+					// Save Token, Expiry, Loginstatus
 					localStorage.setItem('token', 'Bearer ' + token);
 					localStorage.setItem('expiry', expiry);
 					localStorage.setItem('loginStatus', true);
-					this.props.updateState({ loginStatus: true});
-					this.props.extendSessionPopup();
-					this.props.history.replace('/onboarding');
+
+					console.log(localStorage.getItem('expiry'));
+
+					// Update Main App State with new Login Status
+					this.props.updateLoginStatus(true);
+					
+
+					axios
+						.get('/api/profile', {
+							params: {
+								username: this.state.username,
+								fullname: '',
+							},
+						})
+						.then((response) => response)
+						.catch((error) => error.response)
+						.then((response) => {
+							console.log(response.status);
+
+							if (response.status === '200' || response.status === 200) {
+								if (response.data.fullname == ''){
+									this.props.history.replace('/profile');
+								} else {
+									this.props.history.replace('/onboarding');
+								}
+							}
+						});
+					
 				} else {
+					// Display Error from response
 					this.setState({ error: response.data });
 				}
-				
 			});
 	}
 

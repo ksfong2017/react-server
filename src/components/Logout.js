@@ -3,6 +3,7 @@ import './css/Logout.css';
 
 class Logout extends React.Component {
 	componentDidMount() {
+        document.title = 'Logout';
 		localStorage.removeItem('token');
 		localStorage.removeItem('expiry');
         if(localStorage.getItem('loginStatus') !== "true"){
@@ -12,7 +13,7 @@ class Logout extends React.Component {
 			localStorage.removeItem('loginStatus');
 			this.props.updateState({ loginStatus: false });
 			this.props.updateState({ expiry: new Date() });
-			this.props.stopTimer();
+			//this.props.stopTimer();
 			this.props.history.replace('/login');
 		}, 2500);
 	}

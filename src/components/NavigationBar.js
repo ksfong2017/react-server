@@ -28,11 +28,14 @@ class NavigationBar extends React.Component {
 								<NavDropdown.Item href="#action/3.4">Separated link</NavDropdown.Item>
 							</NavDropdown>
 						</Nav>
-						{this.props.app.loginStatus ? (
+						{this.props.loginStatus ?  [
+							<Nav.Link href="/profile" >
+								Profile
+							</Nav.Link>,
 							<Nav.Link href="/logout" className="nav-login">
 								Logout
 							</Nav.Link>
-						) : (
+						]: (
 							<Nav.Link href="/login" className="nav-login">
 								Login
 							</Nav.Link>

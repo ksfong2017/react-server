@@ -42,3 +42,14 @@
   display: flex;
   flex-flow: column;
 }
+
+.drafts{
+  display: inline-flex;
+  
+}
+
+.card-img-top{
+  object-fit: contain;
+  height: 100px;
+}
+

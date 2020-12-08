@@ -1,6 +1,8 @@
 import React from 'react';
 import axios from 'axios';
 import { withRouter } from 'react-router';
+import OnboardingCard from './OnboardingCard';
+import { Button } from 'react-bootstrap';
 class OnBoarding extends React.Component {
 	appendLeadingZeroes(n) {
 		if (n <= 9) {
@@ -12,15 +14,17 @@ class OnBoarding extends React.Component {
 		super(props);
 		this.handleSubmit = this.handleSubmit.bind(this);
 		this.state = {
-			customerName: 'abc',
-			customerAge: 12,
-			serviceOfficerName: 'abc',
-			NRIC: 'S9430515B',
-			registrationTime: '12/12/2012 12:12:12',
+			username: '',
+			customerName: '',
+			customerAge: 18,
+			serviceOfficerName: '',
+			NRIC: 'S1234567A',
+			registrationTime: '',
 			branchCode: 1,
 			image: '',
 			productType: [],
 			error: '',
+			base64: '',
 			productTypes: [
 				{ id: '137', value: 'Investor' },
 				{ id: '070', value: 'Insurannce' },
@@ -28,6 +32,7 @@ class OnBoarding extends React.Component {
 				{ id: '969', value: 'Savings' },
 				{ id: '555', value: 'Credit Cards' },
 			],
+			draft: {},
 		};
 
 		let d = new Date();
@@ -46,8 +51,71 @@ class OnBoarding extends React.Component {
 		console.log(d_format);
 	}
 
+	getDrafts() {
+		axios
+			.get('/api/onboarding/draft', {
+				params: {
+					username: this.state.username,
+				},
+			})
+			.then((response) => response)
+			.catch((error) => error.response)
+			.then((response) => {
+				if (response.status == '200') {
+					console.log('Fuyoh!');
+					this.setState({ draft: response.data });
+					console.log(this.state.draft);
+				} else {
+					this.setState({ error: response.data });
+				}
+			});
+	}
+
+	componentDidMount() {
+		document.title = 'Onboarding';
+		let uname = localStorage.getItem('username');
+		this.setState({ username: uname }, function () {
+			this.getDrafts();
+		});
+	}
+
+	changeFile(file) {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.readAsDataURL(file);
+			reader.onload = () => resolve(reader.result);
+			reader.onerror = (error) => reject(error);
+		});
+	}
+	b64toBlob(dataURI, type) {
+		var byteString = atob(dataURI.split(',')[1]);
+		var ab = new ArrayBuffer(byteString.length);
+		var ia = new Uint8Array(ab);
+
+		for (var i = 0; i < byteString.length; i++) {
+			ia[i] = byteString.charCodeAt(i);
+		}
+		return new Blob([ab], { type: type });
+	}
 	handleFileChange = (e) => {
 		let file = e.target.files[0];
+		let type = file.type;
+		let reader = new FileReader();
+		reader.readAsDataURL(file);
+		reader.onloadend = () => {
+			this.setState({
+				base64: reader.result,
+			});
+		};
+		// File > base64 > blob
+		/*this.changeFile(file).then((base64) => {
+            //console.log(base64);
+			this.fileBlob = this.b64toBlob(base64, type);
+			this.setState({ [e.target.name]: this.fileBlob });
+            //console.log(this.fileBlob)
+		});
+		*/
+		//console.log(new Blob(file, {type: file.type}));
 		this.setState({ [e.target.name]: file });
 		//let url = URL.createObjectURL(e.target.files[0]);
 		//fetch(url).then(r => r.blob()).then(blob => this.setState({ image: blob }));
@@ -94,6 +162,7 @@ class OnBoarding extends React.Component {
 		event.preventDefault();
 
 		var formData = new FormData();
+		formData.append('username', this.state.username);
 		formData.append('customerName', this.state.customerName);
 		formData.append('customerAge', this.state.customerAge);
 		formData.append('serviceOfficerName', this.state.serviceOfficerName);
@@ -102,9 +171,9 @@ class OnBoarding extends React.Component {
 		formData.append('branchCode', this.state.branchCode);
 		formData.append('image', this.state.image);
 		formData.append('productType', this.state.productType);
-
+		formData.append('base64', this.state.base64);
 		axios
-			.post('http://expressbackend-env.eba-mmzyvbbv.us-east-1.elasticbeanstalk.com/extendSession', formData, {
+			.post('/api/validateForm', formData, {
 				headers: {
 					Authorization: localStorage.getItem('token'),
 				},
@@ -114,8 +183,8 @@ class OnBoarding extends React.Component {
 			.then((response) => {
 				if (response.status == '200') {
 					console.log('Fuyoh!');
-
-
+					this.setState({ error: '' });
+					this.getDrafts();
 				} else {
 					this.setState({ error: response.data });
 				}
@@ -123,8 +192,17 @@ class OnBoarding extends React.Component {
 	}
 	render() {
 		return (
-			<div>
-				<h2>Onboarding</h2>
+			<div class="col-lg-8 mx-auto">
+				<div class="d-flex">
+					<h2>Onboarding</h2>
+					<Button variant="primary">Add</Button>
+				</div>
+				<h3>Drafts</h3>
+				<div class="drafts">
+					{Object.keys(this.state.draft).map((key, i) => {
+						return <OnboardingCard key={key} data={this.state.draft[key]} />;
+					})}
+				</div>
 				<div>
 					<form onSubmit={this.handleSubmit}>
 						<input
