@@ -24,8 +24,14 @@ if (process.env.NODE_ENV != 'dev') {
 	app.use(express.static(path.join(__dirname, '/build')));
 }
 
+app.use(cors());
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.get('/api', (req, res) => {
+	res.send({ express: 'Hello From Express' });
+});
 
 app.post('/api/login', function (req, res) {
 	console.log(req.body);
@@ -51,9 +57,9 @@ app.post('/api/login', function (req, res) {
 	}
 });
 
-
 app.post('/api/add', upload.single('image'), function (req, res) {
 	console.log(req.body);
+	console.log(Array.isArray(req.body['productType']));
 	if (req.headers['authorization'] == '') {
 		res.status(401).send('Missing credentials');
 	} else if (
@@ -76,6 +82,7 @@ app.post('/api/add', upload.single('image'), function (req, res) {
 	} else {
 		let file = req.file;
 		//console.log(file);
+		
 		var formData = new FormData();
 		formData.append('customerName', req.body['customerName']);
 		formData.append('customerAge', req.body['customerAge']);
@@ -86,7 +93,7 @@ app.post('/api/add', upload.single('image'), function (req, res) {
 		formData.append('image', file.buffer, file.originalname);
 		formData.append('productType', req.body['productType']);
 		axios
-			.post('http://expressbackend-env.eba-mmzyvbbv.us-east-1.elasticbeanstalk.com/validateForm', formData, {
+			.post('http://localhost:3001/validateForm', formData, {
 				headers: {
 					Authorization: req.headers['authorization'],
 					'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
@@ -107,7 +114,7 @@ app.post('/api/add', upload.single('image'), function (req, res) {
 							registrationTime: req.body['registrationTime'],
 							branchCode: req.body['branchCode'],
 							image: req.body['base64'],
-							productType: req.body['productType'],
+							productType: JSON.parse(req.body['productType']),
 						})
 						.then((result) => {
 							try {
@@ -139,7 +146,23 @@ app.get('/api/profile', function (req, res) {
 	});
 });
 
-app.get('/api/onboarding/draft', function (req, res) {
+app.get('/api/onboarding/draft/all', function (req, res) {
+	console.log(req.query);
+
+	const profileRef = db.collection('Customer').doc(req.query['username']).collection('Draft');
+	profileRef.get().then((draft) => {
+		let output = {};
+		draft.forEach((doc) => {
+			output[doc.id] = doc.data();
+		});
+
+		res.status(200).send(output);
+	});
+	
+});
+
+// Incomplete
+app.get('/api/onboarding/draft/', function (req, res) {
 	console.log(req.query);
 	const profileRef = db.collection('Customer').doc(req.query['username']).collection('Draft');
 	profileRef.get().then((draft) => {
@@ -152,7 +175,7 @@ app.get('/api/onboarding/draft', function (req, res) {
 	});
 });
 
-app.get('/api/onboarding/active', function (req, res) {
+app.get('/api/onboarding/active/all', function (req, res) {
 	console.log(req.query);
 	const profileRef = db.collection('Customer').doc(req.query['username']).collection('Active');
 	profileRef.get().then((draft) => {
@@ -165,6 +188,24 @@ app.get('/api/onboarding/active', function (req, res) {
 	});
 });
 
+app.put('/api/onboarding/shift', function (req, res) {
+	console.log(req.body);
+	const docRef = db.collection('Customer').doc(req.body['username']).collection(req.body['type']).doc(req.body['id']);
+	docRef.get().then((doc) => {
+		let newtype = req.body['type'] == 'Draft' ? 'Active' : 'Draft';
+		const newdocRef = db
+			.collection('Customer')
+			.doc(req.body['username'])
+			.collection(newtype)
+			.doc(req.body['id'])
+			.set(doc.data())
+			.then((result) => {
+				docRef.delete().then((result) => {
+					res.status(200).send();
+				});
+			});
+	});
+});
 app.put('/api/profile', function (req, res) {
 	console.log(req.body);
 	const docRef = db.collection('profile').doc(req.body['username']);

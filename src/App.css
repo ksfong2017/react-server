@@ -64,3 +64,9 @@
 .flex-at-end {
   margin-left: auto;
 }
+.not-valid{
+  border: 1px solid red !important;
+}
+.error{
+  color: red !important;
+}

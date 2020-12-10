@@ -52,7 +52,7 @@ class Profile extends React.Component {
 				//console.log(response.status);
 
 				if (response.status === '200' || response.status === 200) {
-                    this.props.updateFullname(this.state.fullname);
+					this.props.updateFullname(this.state.fullname);
                     this.setState({ success: "Successfully updated profile!" });
 				} else {
 					this.setState({ error: response.data });
@@ -60,6 +60,7 @@ class Profile extends React.Component {
 			});
 	}
 	render() {
+		const isValidServiceOfficerName = (this.state.fullname.length > 0 && this.state.fullname.length <= 64);
 		return (
 			<div class="login">
 				<div class="login-box">
@@ -85,8 +86,10 @@ class Profile extends React.Component {
 									name="fullname"
 									placehoder="Enter Full Name"
                                     onChange={this.handleChange}
-                                    value={this.state.fullname}
+									value={this.state.fullname}
+									className={isValidServiceOfficerName? '':'not-valid'}
 								/>
+								{ isValidServiceOfficerName? null : <div class="error">Full Name must not exceed 64 characters.</div>}
 							</Form.Group>
 
 							<Button variant="primary" type="submit">

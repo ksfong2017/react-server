@@ -89,7 +89,7 @@ class Session extends React.Component {
 					let decodedToken = decode(token);
 					let diff = parseInt(decodedToken.exp) - parseInt(decodedToken.iat);
 					let expiry = new Date();
-					expiry.setSeconds(expiry.getSeconds() + diff);
+					expiry.setSeconds(expiry.getSeconds() + diff - 10);
 					clearInterval(this.countdown);
 					clearTimeout(this.popup);
 
